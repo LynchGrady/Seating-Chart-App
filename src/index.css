@@ -1,0 +1,72 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  overflow: hidden;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  overscroll-behavior-y: contain;
+  overscroll-behavior-x: none;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Draggable elements should allow touch interactions */
+.react-draggable {
+  touch-action: none;
+}
+
+/* Prevent text selection during drag operations */
+.react-draggable-dragging {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  z-index: 9999 !important;
+  position: relative !important;
+}
+
+/* Ensure dragged student tiles always appear on top */
+.react-draggable-dragging > div {
+  z-index: 9999 !important;
+}
+
+/* Custom class for dragging students */
+.student-tile-dragging {
+  z-index: 10000 !important;
+  position: fixed !important;
+  pointer-events: auto !important;
+}
+
+/* Student draggable classes */
+.student-draggable {
+  z-index: 1000;
+}
+
+.student-draggable-dragging {
+  z-index: 10000 !important;
+  position: relative !important;
+}
+
+.student-draggable-dragging > div {
+  z-index: 10001 !important;
+}

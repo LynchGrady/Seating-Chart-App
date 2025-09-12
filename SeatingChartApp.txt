@@ -1,0 +1,19 @@
+﻿Specifications for Seating Chart Application
+
+
+What is it: An application for teachers to efficiently generate new seating arrangements for their students. It should have an easy to use interface and appealing visuals.
+
+
+Details
+* Teachers can input roster, class size (9 - 40), table size, (1, 2, or 4), and number of desired tables.
+* The app should randomly assign every student from the roster to a table.
+
+
+        Features
+* Student names should be on tiles that can be dragged and dropped to switch position, either to an open postion or switch with another student.
+* Tables should be moveable and their size adjustable like a computer window, and displayed in a rectangular  border representing the classroom with the top of the rectangle labled “front” and the bottom of the rectangle labled “back”.
+* Each student tile should have a clickable lock icon in the corner. While unlocked, with the icon showing an open padlock, the student is free to be randomized when the randomize button is clicked. While locked, with the icon sjowing a closed padlock, the students tile should stay in the same place when the randomize button is clicked.
+* There should be a button somewhere on the page labled randomize that, when clicked, randomly places all student tiles that are currently unlocked in random locations
+* Number of desired tables input need to be checked for validity. Minimum number of tables is equal to class size “cieling divided” by table size.
+minTables = -(classSize // -tableSize)
+Number of desired tables must be greater than or equal to minimum number of tables. Desired number of tables should also be an optional input where, if null, should default to minimum number of tables.
