@@ -7,6 +7,7 @@ interface InputFormProps {
     classSize: number;
     tableSize: number;
     numberOfTables: number;
+    showTableDivider: boolean;
   }) => void;
 }
 
@@ -14,6 +15,7 @@ export const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
   const [roster, setRoster] = useState<string>('');
   const [tableSize, setTableSize] = useState<number>(4);
   const [numberOfTables, setNumberOfTables] = useState<string>('');
+  const [showTableDivider, setShowTableDivider] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -40,7 +42,8 @@ export const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
       roster: rosterArray,
       classSize,
       tableSize,
-      numberOfTables: validation.actualTables
+      numberOfTables: validation.actualTables,
+      showTableDivider
     });
   };
 
@@ -86,6 +89,21 @@ export const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
           style={{ width: '100%', padding: '8px' }}
           placeholder="Leave empty for minimum required"
         />
+      </div>
+
+      <div style={{ marginBottom: '15px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={showTableDivider}
+            onChange={(e) => setShowTableDivider(e.target.checked)}
+            style={{ marginRight: '8px' }}
+          />
+          <span>Show table divider lines (for combined physical tables)</span>
+        </label>
+        <div style={{ fontSize: '12px', color: '#666', marginTop: '4px', marginLeft: '20px' }}>
+          Adds a vertical line through the middle of each table group
+        </div>
       </div>
       
       {error && (

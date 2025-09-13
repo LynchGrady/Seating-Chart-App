@@ -72,7 +72,7 @@ export const StudentDragLayer: React.FC<StudentDragLayerProps> = () => {
           opacity: 0.8,
         }}
       >
-        <span style={{ marginRight: '4px', fontSize: '14px' }}>
+        <span style={{ marginRight: '4px', fontSize: '17px', marginTop: '15px' }}>
           {item?.name?.length > 12 ? `${item.name.substring(0, 12)}...` : item?.name}
         </span>
         <div

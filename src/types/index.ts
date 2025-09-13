@@ -12,6 +12,7 @@ export interface Table {
   position: { x: number; y: number };
   dimensions: { width: number; height: number };
   students: Student[];
+  customName?: string; // Optional custom name for table
 }
 
 export interface ClassroomState {
@@ -20,4 +21,5 @@ export interface ClassroomState {
   classSize: number;
   tableSize: number;
   numberOfTables: number;
+  showTableDivider: boolean;
 }

@@ -16,15 +16,15 @@ export const calculateGridPositions = (tables: Table[]): GridPosition[] => {
       let position: { x: number; y: number };
       
       if (tableCapacity === 1) {
-        position = { x: 100, y: 90 };
+        position = { x: 92, y: 60 };
       } else if (tableCapacity === 2) {
-        position = { x: 30 + (i * 140), y: 90 };
+        position = { x: 15 + (i * 130), y: 60 };
       } else if (tableCapacity === 4) {
         const row = Math.floor(i / 2);
         const col = i % 2;
-        position = { x: 30 + (col * 140), y: 60 + (row * 80) };
+        position = { x: 25 + (col * 130), y: 20 + (row * 70) };
       } else {
-        position = { x: i * 90 + 15, y: 60 };
+        position = { x: i * 90 + 10, y: 35 };
       }
       
       allPositions.push({

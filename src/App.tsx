@@ -14,11 +14,12 @@ const App: React.FC = () => {
     classSize: number;
     tableSize: number;
     numberOfTables: number;
+    showTableDivider: boolean;
   }) => {
     // Create tables
     const tables: Table[] = [];
-    const tableWidth = 320;
-    const tableHeight = 240;
+    const tableWidth = 304; // Reduced by 5% (320 * 0.95)
+    const tableHeight = 192; // Reduced by 20% (240 * 0.8)
     const tablesPerRow = Math.ceil(Math.sqrt(data.numberOfTables));
     
     for (let i = 0; i < data.numberOfTables; i++) {
@@ -55,7 +56,8 @@ const App: React.FC = () => {
       tables: updatedTables,
       classSize: data.classSize,
       tableSize: data.tableSize,
-      numberOfTables: data.numberOfTables
+      numberOfTables: data.numberOfTables,
+      showTableDivider: data.showTableDivider
     });
   };
 
@@ -188,6 +190,21 @@ const App: React.FC = () => {
     });
   };
 
+  const handleTableNameUpdate = (tableId: string, customName: string) => {
+    if (!classroomState) return;
+
+    const updatedTables = classroomState.tables.map(table =>
+      table.id === tableId
+        ? { ...table, customName }
+        : table
+    );
+
+    setClassroomState({
+      ...classroomState,
+      tables: updatedTables
+    });
+  };
+
   const handleRandomize = () => {
     if (!classroomState) return;
 
@@ -242,8 +259,10 @@ const App: React.FC = () => {
       
       <ClassroomLayout
         tables={classroomState.tables}
+        showTableDivider={classroomState.showTableDivider}
         onTableMove={handleTableMove}
         onTableResize={handleTableResize}
+        onTableNameUpdate={handleTableNameUpdate}
         students={classroomState.students}
         onStudentToggleLock={handleStudentToggleLock}
         onStudentMove={handleStudentMove}

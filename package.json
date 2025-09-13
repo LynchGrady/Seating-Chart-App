@@ -2,7 +2,7 @@
   "name": "seating-chart-app",
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://<your-username>.github.io/<repo-name>/",
+  "homepage": "https://LynchGrady.github.io/Seating-Chart-App/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -18,7 +18,6 @@
     "react-draggable": "^4.4.5"
   },
   "devDependencies": {
-    "@types/node": "^24.3.2",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
     "@vitejs/plugin-react": "^4.1.1",

@@ -79,7 +79,7 @@ export const DndStudentTile: React.FC<DndStudentTileProps> = ({
         zIndex: 1000,
       }}
     >
-      <span style={{ marginRight: '4px', fontSize: '14px' }}>
+      <span style={{ marginRight: '4px', fontSize: '17px', marginTop: '15px' }}>
         {student.name.length > 12 ? `${student.name.substring(0, 12)}...` : student.name}
       </span>
       

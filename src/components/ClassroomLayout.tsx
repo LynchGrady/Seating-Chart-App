@@ -9,8 +9,10 @@ import { StudentDragLayer } from './StudentDragLayer';
 interface ClassroomLayoutProps {
   tables: Table[];
   students: Student[];
+  showTableDivider: boolean;
   onTableMove: (tableId: string, position: { x: number; y: number }) => void;
   onTableResize: (tableId: string, dimensions: { width: number; height: number }) => void;
+  onTableNameUpdate: (tableId: string, customName: string) => void;
   onStudentToggleLock: (studentId: string) => void;
   onStudentMove: (studentId: string, position: { x: number; y: number }, tableId?: string) => void;
   onStudentSwap: (studentId1: string, studentId2: string) => void;
@@ -22,8 +24,10 @@ interface ClassroomLayoutProps {
 const ClassroomArea: React.FC<{
   tables: Table[];
   students: Student[];
+  showTableDivider: boolean;
   onTableMove: (tableId: string, position: { x: number; y: number }) => void;
   onTableResize: (tableId: string, dimensions: { width: number; height: number }) => void;
+  onTableNameUpdate: (tableId: string, customName: string) => void;
   onStudentToggleLock: (studentId: string) => void;
   onStudentMove: (studentId: string, position: { x: number; y: number }, tableId?: string) => void;
   onStudentSwap: (studentId1: string, studentId2: string) => void;
@@ -32,8 +36,10 @@ const ClassroomArea: React.FC<{
 }> = ({
   tables,
   students,
+  showTableDivider,
   onTableMove,
   onTableResize,
+  onTableNameUpdate,
   onStudentToggleLock,
   onStudentMove,
   onStudentSwap,
@@ -116,8 +122,10 @@ const ClassroomArea: React.FC<{
           table={table}
           allTables={tables}
           allStudents={students}
+          showTableDivider={showTableDivider}
           onTableMove={onTableMove}
           onTableResize={onTableResize}
+          onTableNameUpdate={onTableNameUpdate}
           onStudentToggleLock={onStudentToggleLock}
           onStudentMove={onStudentMove}
           onStudentSwap={onStudentSwap}
@@ -145,8 +153,10 @@ const ClassroomArea: React.FC<{
 export const ClassroomLayout: React.FC<ClassroomLayoutProps> = ({
   tables,
   students,
+  showTableDivider,
   onTableMove,
   onTableResize,
+  onTableNameUpdate,
   onStudentToggleLock,
   onStudentMove,
   onStudentSwap,
@@ -189,8 +199,10 @@ export const ClassroomLayout: React.FC<ClassroomLayoutProps> = ({
         <ClassroomArea
           tables={tables}
           students={students}
+          showTableDivider={showTableDivider}
           onTableMove={onTableMove}
           onTableResize={onTableResize}
+          onTableNameUpdate={onTableNameUpdate}
           onStudentToggleLock={onStudentToggleLock}
           onStudentMove={onStudentMove}
           onStudentSwap={onStudentSwap}
