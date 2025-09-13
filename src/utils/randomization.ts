@@ -19,15 +19,15 @@ export const randomizeUnlockedStudents = (
       let position: { x: number; y: number };
       
       if (tableCapacity === 1) {
-        position = { x: 92, y: 60 };
+        position = { x: 80, y: 50 };
       } else if (tableCapacity === 2) {
-        position = { x: 15 + (i * 130), y: 60 };
+        position = { x: 3 + (i * 142), y: 50 };
       } else if (tableCapacity === 4) {
         const row = Math.floor(i / 2);
         const col = i % 2;
-        position = { x: 25 + (col * 130), y: 20 + (row * 70) };
+        position = { x: 13 + (col * 142), y: 10 + (row * 70) };
       } else {
-        position = { x: i * 90 + 10, y: 35 };
+        position = { x: i * 102 - 2, y: 25 };
       }
       
       allPossiblePositions.push({

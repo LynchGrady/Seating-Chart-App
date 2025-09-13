@@ -165,7 +165,7 @@ export const DndTableComponent: React.FC<DndTableComponentProps> = ({
         top: table.position.y,
         width: table.dimensions.width,
         height: table.dimensions.height,
-        border: isOver ? '3px solid #00b894' : '3px solid #636e72',
+        border: isOver ? '8px solid #00b894' : '8px solid #636e72',
         borderRadius: '8px',
         backgroundColor: isOver ? '#e8f5e8' : '#ddd',
         userSelect: 'none',
@@ -278,30 +278,16 @@ export const DndTableComponent: React.FC<DndTableComponentProps> = ({
             style={{
               position: 'absolute',
               left: '50%',
-              top: '2px',
-              bottom: '2px',
-              width: '2px',
-              backgroundColor: '#2d3436',
+              top: '0px',
+              bottom: '0px',
+              width: '8px',
+              backgroundColor: '#636e72',
               transform: 'translateX(-50%)',
               zIndex: 1
             }}
           />
         )}
       </div>
-      
-      {/* Resize handle */}
-      <div
-        onMouseDown={handleResize}
-        style={{
-          position: 'absolute',
-          bottom: '0',
-          right: '0',
-          width: '15px',
-          height: '15px',
-          cursor: 'nw-resize',
-          backgroundColor: '#636e72'
-        }}
-      />
     </div>
   );
 };
