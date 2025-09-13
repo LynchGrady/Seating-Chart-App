@@ -9,6 +9,7 @@ interface DndStudentTileProps {
   onSwapButtonClick?: (studentId: string) => void;
   swapModeStudent?: string | null;
   isUnassigned?: boolean;
+  hideUIElements?: boolean;
 }
 
 export const DndStudentTile: React.FC<DndStudentTileProps> = ({
@@ -17,7 +18,8 @@ export const DndStudentTile: React.FC<DndStudentTileProps> = ({
   onMove,
   onSwapButtonClick,
   swapModeStudent,
-  isUnassigned = false
+  isUnassigned = false,
+  hideUIElements = false
 }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'student',
@@ -84,32 +86,34 @@ export const DndStudentTile: React.FC<DndStudentTileProps> = ({
       </span>
       
       {/* Lock button */}
-      <button
-        onClick={handleLockClick}
-        style={{
-          position: 'absolute',
-          top: '3px',
-          right: '3px',
-          width: '24px',
-          height: '24px',
-          border: '2px solid ' + (student.isLocked ? '#d63031' : '#00b894'),
-          borderRadius: '4px',
-          background: student.isLocked ? '#ffebee' : '#e8f5e8',
-          cursor: 'pointer',
-          fontSize: '14px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: student.isLocked ? '#d63031' : '#00b894',
-          fontWeight: 'bold'
-        }}
-        title={student.isLocked ? 'Click to unlock student' : 'Click to lock student'}
-      >
-        {student.isLocked ? '🔒' : '🔓'}
-      </button>
+      {!hideUIElements && (
+        <button
+          onClick={handleLockClick}
+          style={{
+            position: 'absolute',
+            top: '3px',
+            right: '3px',
+            width: '24px',
+            height: '24px',
+            border: '2px solid ' + (student.isLocked ? '#d63031' : '#00b894'),
+            borderRadius: '4px',
+            background: student.isLocked ? '#ffebee' : '#e8f5e8',
+            cursor: 'pointer',
+            fontSize: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: student.isLocked ? '#d63031' : '#00b894',
+            fontWeight: 'bold'
+          }}
+          title={student.isLocked ? 'Click to unlock student' : 'Click to lock student'}
+        >
+          {student.isLocked ? '🔒' : '🔓'}
+        </button>
+      )}
       
       {/* Swap button */}
-      {onSwapButtonClick && (
+      {!hideUIElements && onSwapButtonClick && (
         <button
           onClick={handleSwapClick}
           style={{

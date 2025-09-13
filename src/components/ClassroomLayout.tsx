@@ -19,6 +19,8 @@ interface ClassroomLayoutProps {
   onSwapButtonClick: (studentId: string) => void;
   swapModeStudent: string | null;
   onRandomize: () => void;
+  hideUIElements: boolean;
+  onToggleUIElements: () => void;
 }
 
 const ClassroomArea: React.FC<{
@@ -33,6 +35,7 @@ const ClassroomArea: React.FC<{
   onStudentSwap: (studentId1: string, studentId2: string) => void;
   onSwapButtonClick: (studentId: string) => void;
   swapModeStudent: string | null;
+  hideUIElements: boolean;
 }> = ({
   tables,
   students,
@@ -44,7 +47,8 @@ const ClassroomArea: React.FC<{
   onStudentMove,
   onStudentSwap,
   onSwapButtonClick,
-  swapModeStudent
+  swapModeStudent,
+  hideUIElements
 }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'student',
@@ -131,6 +135,7 @@ const ClassroomArea: React.FC<{
           onStudentSwap={onStudentSwap}
           onSwapButtonClick={onSwapButtonClick}
           swapModeStudent={swapModeStudent}
+          hideUIElements={hideUIElements}
         />
       ))}
 
@@ -144,6 +149,7 @@ const ClassroomArea: React.FC<{
           onSwapButtonClick={onSwapButtonClick}
           swapModeStudent={swapModeStudent}
           isUnassigned={true}
+          hideUIElements={hideUIElements}
         />
       ))}
     </div>
@@ -162,7 +168,9 @@ export const ClassroomLayout: React.FC<ClassroomLayoutProps> = ({
   onStudentSwap,
   onSwapButtonClick,
   swapModeStudent,
-  onRandomize
+  onRandomize,
+  hideUIElements,
+  onToggleUIElements
 }) => {
   return (
     <DndProvider backend={HTML5Backend}>
@@ -186,6 +194,23 @@ export const ClassroomLayout: React.FC<ClassroomLayoutProps> = ({
             >
               Randomize
             </button>
+            <button
+              onClick={onToggleUIElements}
+              style={{
+                backgroundColor: hideUIElements ? '#17a2b8' : '#6c757d',
+                color: 'white',
+                padding: '10px 20px',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                marginRight: '15px'
+              }}
+              title={hideUIElements ? 'Show UI elements' : 'Hide UI elements for clean screenshots'}
+            >
+              📷 {hideUIElements ? 'Show UI' : 'Hide UI'}
+            </button>
             <span style={{ fontSize: '14px', color: '#6c757d' }}>
               💡 Tip: Drag students to move them manually, use ↔️ buttons to swap students
             </span>
@@ -208,6 +233,7 @@ export const ClassroomLayout: React.FC<ClassroomLayoutProps> = ({
           onStudentSwap={onStudentSwap}
           onSwapButtonClick={onSwapButtonClick}
           swapModeStudent={swapModeStudent}
+          hideUIElements={hideUIElements}
         />
         
         {/* Custom drag layer for students */}

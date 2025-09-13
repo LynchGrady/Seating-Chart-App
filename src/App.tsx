@@ -8,6 +8,7 @@ import { findClosestGridPosition, isPositionOccupied, findStudentAtPosition } fr
 const App: React.FC = () => {
   const [classroomState, setClassroomState] = useState<ClassroomState | null>(null);
   const [swapModeStudent, setSwapModeStudent] = useState<string | null>(null);
+  const [hideUIElements, setHideUIElements] = useState<boolean>(false);
 
   const initializeClassroom = (data: {
     roster: string[];
@@ -270,6 +271,8 @@ const App: React.FC = () => {
         onSwapButtonClick={handleSwapButtonClick}
         swapModeStudent={swapModeStudent}
         onRandomize={handleRandomize}
+        hideUIElements={hideUIElements}
+        onToggleUIElements={() => setHideUIElements(!hideUIElements)}
       />
     </div>
   );

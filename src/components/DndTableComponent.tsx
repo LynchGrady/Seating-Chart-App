@@ -17,6 +17,7 @@ interface DndTableComponentProps {
   onStudentSwap: (studentId1: string, studentId2: string) => void;
   onSwapButtonClick: (studentId: string) => void;
   swapModeStudent: string | null;
+  hideUIElements: boolean;
 }
 
 export const DndTableComponent: React.FC<DndTableComponentProps> = ({
@@ -31,7 +32,8 @@ export const DndTableComponent: React.FC<DndTableComponentProps> = ({
   onStudentMove,
   onStudentSwap,
   onSwapButtonClick,
-  swapModeStudent
+  swapModeStudent,
+  hideUIElements
 }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'student',
@@ -239,23 +241,25 @@ export const DndTableComponent: React.FC<DndTableComponentProps> = ({
             <span style={{ flex: 1, textAlign: 'center' }}>
               {table.customName || `Table ${table.id} (Max: ${table.size})`}
             </span>
-            <button
-              onClick={handleEditNameClick}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'white',
-                cursor: 'pointer',
-                fontSize: '12px',
-                padding: '2px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              title="Edit table name"
-            >
-              ✏️
-            </button>
+            {!hideUIElements && (
+              <button
+                onClick={handleEditNameClick}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  padding: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                title="Edit table name"
+              >
+                ✏️
+              </button>
+            )}
           </>
         )}
       </div>
@@ -269,6 +273,7 @@ export const DndTableComponent: React.FC<DndTableComponentProps> = ({
             onMove={onStudentMove}
             onSwapButtonClick={onSwapButtonClick}
             swapModeStudent={swapModeStudent}
+            hideUIElements={hideUIElements}
           />
         ))}
         
