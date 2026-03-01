@@ -63,15 +63,15 @@ const ClassroomArea: React.FC<{
   const [{ isOver }, drop] = useDrop(
     () => ({
       accept: 'student',
-      drop: (item: any, monitor) => {
-        if (!monitor.getClientOffset()) return;
-
-        // Check if dropped on empty classroom space (not on a table)
+      drop: (_item: any, monitor) => {
+        // If student wasn't dropped on a table, keep original placement.
+        // This prevents accidental unassigns when pointer is near table edges.
         const didDropOnTable = monitor.didDrop();
         if (!didDropOnTable) {
-          // Student dropped on empty classroom space - remove from current table
-          onStudentMove(item.id, { x: 50, y: 50 }, null);
+          return { rejected: true };
         }
+
+        return undefined;
       },
       collect: (monitor) => ({
         isOver: monitor.isOver({ shallow: true }),
@@ -168,7 +168,7 @@ const ClassroomArea: React.FC<{
             key={student.id}
             student={student}
             onToggleLock={onStudentToggleLock}
-            onMove={(studentId, position) => onStudentMove(studentId, position, null)}
+            onMove={onStudentMove}
             onSwapButtonClick={onSwapButtonClick}
             swapModeStudent={swapModeStudent}
             isUnassigned={true}

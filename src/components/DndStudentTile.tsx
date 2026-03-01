@@ -1,11 +1,12 @@
 import React from 'react';
 import { useDrag } from 'react-dnd';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 import { Student } from '../types';
 
 interface DndStudentTileProps {
   student: Student;
   onToggleLock: (studentId: string) => void;
-  onMove: (studentId: string, position: { x: number; y: number }, tableId?: string) => void;
+  onMove: (studentId: string, position: { x: number; y: number }, tableId?: string | null) => void;
   onSwapButtonClick?: (studentId: string) => void;
   swapModeStudent?: string | null;
   isUnassigned?: boolean;
@@ -21,7 +22,7 @@ export const DndStudentTile: React.FC<DndStudentTileProps> = ({
   isUnassigned = false,
   hideUIElements = false
 }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
+  const [{ isDragging }, drag, preview] = useDrag(() => ({
     type: 'student',
     item: { 
       id: student.id, 
@@ -30,16 +31,26 @@ export const DndStudentTile: React.FC<DndStudentTileProps> = ({
       initialPosition: student.position 
     },
     end: (item, monitor) => {
-      const dropResult = monitor.getDropResult();
-      if (dropResult && item && dropResult.position && !dropResult.swapped) {
-        // Position was already updated in the table component
-        // This is just for consistency
+      const dropResult = monitor.getDropResult() as
+        | { position?: { x: number; y: number }; tableId?: string; rejected?: boolean }
+        | null;
+
+      if (!item || !dropResult || dropResult.rejected) {
+        return;
+      }
+
+      if (dropResult.position && dropResult.tableId) {
+        onMove(item.id, dropResult.position, dropResult.tableId);
       }
     },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-  }), [student]);
+  }), [student, onMove]);
+
+  React.useEffect(() => {
+    preview(getEmptyImage(), { captureDraggingState: true });
+  }, [preview]);
 
   const handleLockClick = (e: React.MouseEvent) => {
     e.stopPropagation();
