@@ -3,7 +3,7 @@ import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 import { useDrop } from 'react-dnd';
 import { Table, Student } from '../types';
 import { DndStudentTile } from './DndStudentTile';
-import { findClosestGridPosition, isPositionOccupied } from '../utils/gridPositions';
+import { findClosestGridPosition, getAvailablePositionsInTable } from '../utils/gridPositions';
 
 interface DndTableComponentProps {
   table: Table;
@@ -39,6 +39,7 @@ export const DndTableComponent: React.FC<DndTableComponentProps> = ({
   hideUIElements,
 }) => {
   const tableRef = React.useRef<HTMLDivElement | null>(null);
+  const tableContentRef = React.useRef<HTMLDivElement | null>(null);
   const [isEditingName, setIsEditingName] = React.useState(false);
   const [editingName, setEditingName] = React.useState('');
   const [isDraggingTable, setIsDraggingTable] = React.useState(false);
@@ -47,46 +48,91 @@ export const DndTableComponent: React.FC<DndTableComponentProps> = ({
   void allTables;
   void onStudentSwap;
 
-  const [{ isOver }, drop] = useDrop(
+  const evaluateStudentDrop = React.useCallback(
+    (itemId: string, monitor: any) => {
+      const sourceClientOffset = monitor.getSourceClientOffset() ?? monitor.getClientOffset();
+      if (!sourceClientOffset) {
+        return { canDrop: false as const, closestGridPosition: null };
+      }
+
+      const tableContentElement = tableContentRef.current;
+      if (!tableContentElement) {
+        return { canDrop: false as const, closestGridPosition: null };
+      }
+
+      // Use dragged tile top-left against table content bounds so slot snapping
+      // does not depend on where the student tile was grabbed with the pointer.
+      const contentRect = tableContentElement.getBoundingClientRect();
+      const relativeX = sourceClientOffset.x - contentRect.left;
+      const relativeY = sourceClientOffset.y - contentRect.top;
+
+      const availablePositions = getAvailablePositionsInTable(table.id, [table], allStudents, itemId);
+      if (availablePositions.length === 0) {
+        return { canDrop: false as const, closestGridPosition: null };
+      }
+
+      const pointerClosestPosition = findClosestGridPosition({ x: relativeX, y: relativeY }, [table]);
+      if (!pointerClosestPosition) {
+        return { canDrop: false as const, closestGridPosition: null };
+      }
+
+      const closestGridPosition = availablePositions.reduce((closestAvailable, candidatePosition) => {
+        const closestDistance = Math.hypot(
+          closestAvailable.position.x - pointerClosestPosition.position.x,
+          closestAvailable.position.y - pointerClosestPosition.position.y,
+        );
+
+        const candidateDistance = Math.hypot(
+          candidatePosition.position.x - pointerClosestPosition.position.x,
+          candidatePosition.position.y - pointerClosestPosition.position.y,
+        );
+
+        return candidateDistance < closestDistance ? candidatePosition : closestAvailable;
+      });
+
+      return { canDrop: true as const, closestGridPosition };
+    },
+    [table, allStudents],
+  );
+
+  const [{ isOver, canDrop }, drop] = useDrop(
     () => ({
       accept: 'student',
       drop: (item: { id: string }, monitor) => {
-        const clientOffset = monitor.getClientOffset();
-        if (!clientOffset) return;
-
-        const tableElement = tableRef.current;
-        if (!tableElement) return;
-
-        // Convert client coordinates to table-relative coordinates for grid snapping
-        const tableRect = tableElement.getBoundingClientRect();
-        const relativeX = clientOffset.x - tableRect.left;
-        const relativeY = clientOffset.y - tableRect.top - 25; // Account for header
-
-        const closestGridPosition = findClosestGridPosition({ x: relativeX, y: relativeY }, [table]);
-        if (!closestGridPosition) return;
-
-        const occupyingStudent = isPositionOccupied(closestGridPosition, allStudents, item.id);
-        if (occupyingStudent) {
-          return;
+        const { canDrop: isValidDrop, closestGridPosition } = evaluateStudentDrop(item.id, monitor);
+        if (!isValidDrop || !closestGridPosition) {
+          return {
+            tableId: table.id,
+            rejected: true,
+          };
         }
-
-        const studentsInTable = allStudents.filter((student) => student.tableId === table.id && student.id !== item.id);
-        if (studentsInTable.length >= table.size) {
-          return;
-        }
-
-        onStudentMove(item.id, closestGridPosition.position, table.id);
 
         return {
           position: closestGridPosition.position,
           tableId: table.id,
+          rejected: false,
         };
       },
-      collect: (monitor) => ({
-        isOver: monitor.isOver(),
-      }),
+      collect: (monitor) => {
+        const isOverCurrentTable = monitor.isOver({ shallow: true });
+
+        if (!isOverCurrentTable) {
+          return {
+            isOver: false,
+            canDrop: false,
+          };
+        }
+
+        const currentItem = monitor.getItem() as { id: string } | null;
+        const isValidDrop = currentItem ? evaluateStudentDrop(currentItem.id, monitor).canDrop : false;
+
+        return {
+          isOver: true,
+          canDrop: isValidDrop,
+        };
+      },
     }),
-    [table, allStudents, onStudentMove],
+    [evaluateStudentDrop, table.id],
   );
 
   const combinedRef = React.useCallback(
@@ -183,9 +229,13 @@ export const DndTableComponent: React.FC<DndTableComponentProps> = ({
           top: 0,
           width: table.dimensions.width,
           height: table.dimensions.height,
-          border: isOver ? '8px solid #00b894' : '8px solid #636e72',
+          border: isOver
+            ? canDrop
+              ? '8px solid #00b894'
+              : '8px solid #e17055'
+            : '8px solid #636e72',
           borderRadius: '8px',
-          backgroundColor: isOver ? '#e8f5e8' : '#ddd',
+          backgroundColor: isOver ? (canDrop ? '#e8f5e8' : '#ffe9e5') : '#ddd',
           userSelect: 'none',
           zIndex: isDraggingTable ? 3000 : parseInt(table.id, 10) || 1,
           cursor: isDraggingTable ? 'grabbing' : 'grab',
@@ -257,7 +307,10 @@ export const DndTableComponent: React.FC<DndTableComponentProps> = ({
           )}
         </div>
 
-        <div style={{ position: 'relative', height: 'calc(100% - 25px)', zIndex: 2 }}>
+        <div
+          ref={tableContentRef}
+          style={{ position: 'relative', height: 'calc(100% - 25px)', zIndex: 2 }}
+        >
           {table.students.map((student) => (
             <DndStudentTile
               key={student.id}
