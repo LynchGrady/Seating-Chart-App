@@ -11,16 +11,22 @@ interface ClassroomLayoutProps {
   students: Student[];
   showTableDivider: boolean;
   onTableMove: (tableId: string, position: { x: number; y: number }) => void;
+  onTableMoveEnd: (tableId: string, position: { x: number; y: number }) => void;
   onTableResize: (tableId: string, dimensions: { width: number; height: number }) => void;
   onTableNameUpdate: (tableId: string, customName: string) => void;
   onStudentToggleLock: (studentId: string) => void;
-  onStudentMove: (studentId: string, position: { x: number; y: number }, tableId?: string) => void;
+  onStudentMove: (studentId: string, position: { x: number; y: number }, tableId?: string | null) => void;
   onStudentSwap: (studentId1: string, studentId2: string) => void;
   onSwapButtonClick: (studentId: string) => void;
   swapModeStudent: string | null;
   onRandomize: () => void;
   hideUIElements: boolean;
   onToggleUIElements: () => void;
+  onCopyCleanScreenshot: () => void;
+  onResetLayout: () => void;
+  isCapturingScreenshot: boolean;
+  screenshotFeedback: string | null;
+  onClassroomAreaRef: (node: HTMLDivElement | null) => void;
 }
 
 const ClassroomArea: React.FC<{
@@ -28,19 +34,22 @@ const ClassroomArea: React.FC<{
   students: Student[];
   showTableDivider: boolean;
   onTableMove: (tableId: string, position: { x: number; y: number }) => void;
+  onTableMoveEnd: (tableId: string, position: { x: number; y: number }) => void;
   onTableResize: (tableId: string, dimensions: { width: number; height: number }) => void;
   onTableNameUpdate: (tableId: string, customName: string) => void;
   onStudentToggleLock: (studentId: string) => void;
-  onStudentMove: (studentId: string, position: { x: number; y: number }, tableId?: string) => void;
+  onStudentMove: (studentId: string, position: { x: number; y: number }, tableId?: string | null) => void;
   onStudentSwap: (studentId1: string, studentId2: string) => void;
   onSwapButtonClick: (studentId: string) => void;
   swapModeStudent: string | null;
   hideUIElements: boolean;
+  onClassroomAreaRef: (node: HTMLDivElement | null) => void;
 }> = ({
   tables,
   students,
   showTableDivider,
   onTableMove,
+  onTableMoveEnd,
   onTableResize,
   onTableNameUpdate,
   onStudentToggleLock,
@@ -48,29 +57,40 @@ const ClassroomArea: React.FC<{
   onStudentSwap,
   onSwapButtonClick,
   swapModeStudent,
-  hideUIElements
+  hideUIElements,
+  onClassroomAreaRef,
 }) => {
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: 'student',
-    drop: (item: any, monitor) => {
-      const clientOffset = monitor.getClientOffset();
-      if (!clientOffset) return;
+  const [{ isOver }, drop] = useDrop(
+    () => ({
+      accept: 'student',
+      drop: (item: any, monitor) => {
+        if (!monitor.getClientOffset()) return;
 
-      // Check if dropped on empty classroom space (not on a table)
-      const didDropOnTable = monitor.didDrop();
-      if (!didDropOnTable) {
-        // Student dropped on empty classroom space - remove from current table
-        onStudentMove(item.id, { x: 50, y: 50 }, null);
-      }
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver({ shallow: true }),
+        // Check if dropped on empty classroom space (not on a table)
+        const didDropOnTable = monitor.didDrop();
+        if (!didDropOnTable) {
+          // Student dropped on empty classroom space - remove from current table
+          onStudentMove(item.id, { x: 50, y: 50 }, null);
+        }
+      },
+      collect: (monitor) => ({
+        isOver: monitor.isOver({ shallow: true }),
+      }),
     }),
-  }), [onStudentMove]);
+    [onStudentMove],
+  );
+
+  const combinedRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      drop(node);
+      onClassroomAreaRef(node);
+    },
+    [drop, onClassroomAreaRef],
+  );
 
   return (
     <div
-      ref={drop}
+      ref={combinedRef}
       style={{
         height: '85vh',
         position: 'relative',
@@ -78,7 +98,7 @@ const ClassroomArea: React.FC<{
         margin: '20px',
         backgroundColor: isOver ? '#e8f4f8' : '#f1f2f6',
         overflow: 'hidden',
-        transition: 'background-color 0.2s ease'
+        transition: 'background-color 0.2s ease',
       }}
     >
       {/* Front label */}
@@ -94,12 +114,12 @@ const ClassroomArea: React.FC<{
           borderRadius: '4px',
           fontSize: '14px',
           fontWeight: 'bold',
-          zIndex: 1000
+          zIndex: 1000,
         }}
       >
         FRONT
       </div>
-      
+
       {/* Back label */}
       <div
         style={{
@@ -113,14 +133,14 @@ const ClassroomArea: React.FC<{
           borderRadius: '4px',
           fontSize: '14px',
           fontWeight: 'bold',
-          zIndex: 1000
+          zIndex: 1000,
         }}
       >
         BACK
       </div>
-      
+
       {/* Tables */}
-      {tables.map(table => (
+      {tables.map((table) => (
         <DndTableComponent
           key={table.id}
           table={table}
@@ -128,6 +148,7 @@ const ClassroomArea: React.FC<{
           allStudents={students}
           showTableDivider={showTableDivider}
           onTableMove={onTableMove}
+          onTableMoveEnd={onTableMoveEnd}
           onTableResize={onTableResize}
           onTableNameUpdate={onTableNameUpdate}
           onStudentToggleLock={onStudentToggleLock}
@@ -140,18 +161,20 @@ const ClassroomArea: React.FC<{
       ))}
 
       {/* Students not assigned to any table */}
-      {students.filter(s => !s.tableId).map(student => (
-        <DndStudentTile
-          key={student.id}
-          student={student}
-          onToggleLock={onStudentToggleLock}
-          onMove={(studentId, position) => onStudentMove(studentId, position, null)}
-          onSwapButtonClick={onSwapButtonClick}
-          swapModeStudent={swapModeStudent}
-          isUnassigned={true}
-          hideUIElements={hideUIElements}
-        />
-      ))}
+      {students
+        .filter((student) => !student.tableId)
+        .map((student) => (
+          <DndStudentTile
+            key={student.id}
+            student={student}
+            onToggleLock={onStudentToggleLock}
+            onMove={(studentId, position) => onStudentMove(studentId, position, null)}
+            onSwapButtonClick={onSwapButtonClick}
+            swapModeStudent={swapModeStudent}
+            isUnassigned={true}
+            hideUIElements={hideUIElements}
+          />
+        ))}
     </div>
   );
 };
@@ -161,6 +184,7 @@ export const ClassroomLayout: React.FC<ClassroomLayoutProps> = ({
   students,
   showTableDivider,
   onTableMove,
+  onTableMoveEnd,
   onTableResize,
   onTableNameUpdate,
   onStudentToggleLock,
@@ -170,13 +194,27 @@ export const ClassroomLayout: React.FC<ClassroomLayoutProps> = ({
   swapModeStudent,
   onRandomize,
   hideUIElements,
-  onToggleUIElements
+  onToggleUIElements,
+  onCopyCleanScreenshot,
+  onResetLayout,
+  isCapturingScreenshot,
+  screenshotFeedback,
+  onClassroomAreaRef,
 }) => {
   return (
     <DndProvider backend={HTML5Backend}>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         {/* Controls */}
-        <div style={{ padding: '10px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #dee2e6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div
+          style={{
+            padding: '10px',
+            backgroundColor: '#f8f9fa',
+            borderBottom: '1px solid #dee2e6',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
           <div>
             <button
               onClick={onRandomize}
@@ -189,7 +227,7 @@ export const ClassroomLayout: React.FC<ClassroomLayoutProps> = ({
                 cursor: 'pointer',
                 fontSize: '16px',
                 fontWeight: 'bold',
-                marginRight: '15px'
+                marginRight: '15px',
               }}
             >
               Randomize
@@ -205,27 +243,75 @@ export const ClassroomLayout: React.FC<ClassroomLayoutProps> = ({
                 cursor: 'pointer',
                 fontSize: '16px',
                 fontWeight: 'bold',
-                marginRight: '15px'
+                marginRight: '15px',
               }}
               title={hideUIElements ? 'Show UI elements' : 'Hide UI elements for clean screenshots'}
             >
               📷 {hideUIElements ? 'Show UI' : 'Hide UI'}
             </button>
+            <button
+              onClick={onResetLayout}
+              style={{
+                backgroundColor: '#e67e22',
+                color: 'white',
+                padding: '10px 20px',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                marginRight: '15px',
+              }}
+              title="Reset and clear saved table layout for this table size"
+            >
+              Reset Layout
+            </button>
+            <button
+              onClick={onCopyCleanScreenshot}
+              disabled={isCapturingScreenshot}
+              style={{
+                backgroundColor: isCapturingScreenshot ? '#95a5a6' : '#8e44ad',
+                color: 'white',
+                padding: '10px 20px',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: isCapturingScreenshot ? 'not-allowed' : 'pointer',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                marginRight: '15px',
+              }}
+              title="Copy a clean classroom PNG screenshot to clipboard"
+            >
+              {isCapturingScreenshot ? 'Copying…' : '📋 Copy Screenshot'}
+            </button>
             <span style={{ fontSize: '14px', color: '#6c757d' }}>
               💡 Tip: Drag students to move them manually, use ↔️ buttons to swap students
             </span>
+            {screenshotFeedback && (
+              <span
+                style={{
+                  marginLeft: '12px',
+                  fontSize: '14px',
+                  color: screenshotFeedback.startsWith('✅') ? '#2e7d32' : '#c62828',
+                  fontWeight: 600,
+                }}
+              >
+                {screenshotFeedback}
+              </span>
+            )}
           </div>
           <div style={{ fontSize: '12px', color: '#6c757d' }}>
             <div>🔵 Students at tables | 🔴 Unassigned students | 🔒 Locked (won't randomize)</div>
           </div>
         </div>
-        
+
         {/* Classroom */}
         <ClassroomArea
           tables={tables}
           students={students}
           showTableDivider={showTableDivider}
           onTableMove={onTableMove}
+          onTableMoveEnd={onTableMoveEnd}
           onTableResize={onTableResize}
           onTableNameUpdate={onTableNameUpdate}
           onStudentToggleLock={onStudentToggleLock}
@@ -234,8 +320,9 @@ export const ClassroomLayout: React.FC<ClassroomLayoutProps> = ({
           onSwapButtonClick={onSwapButtonClick}
           swapModeStudent={swapModeStudent}
           hideUIElements={hideUIElements}
+          onClassroomAreaRef={onClassroomAreaRef}
         />
-        
+
         {/* Custom drag layer for students */}
         <StudentDragLayer />
       </div>

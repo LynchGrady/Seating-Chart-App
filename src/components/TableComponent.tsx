@@ -78,7 +78,7 @@ export const TableComponent: React.FC<TableComponentProps> = ({
             fontWeight: 'bold'
           }}
         >
-          Table {table.id} (Max: {table.size})
+          Table {table.id}
         </div>
         
         <div style={{ position: 'relative', height: 'calc(100% - 25px)', zIndex: 2 }}>
