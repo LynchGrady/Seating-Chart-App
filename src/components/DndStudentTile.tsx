@@ -59,6 +59,7 @@ export const DndStudentTile: React.FC<DndStudentTileProps> = ({
   return (
     <div
       ref={drag}
+      className="student-tile"
       style={{
         position: 'absolute',
         left: student.position.x,
