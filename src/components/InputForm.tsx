@@ -1,5 +1,58 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { validateTableCount } from '../utils/validation';
+
+const FORM_OPTIONS_STORAGE_KEY = 'seating-chart-form-options-v1';
+
+interface PersistedFormOptions {
+  tableSize: number;
+  numberOfTables: string;
+  showTableDivider: boolean;
+}
+
+const DEFAULT_FORM_OPTIONS: PersistedFormOptions = {
+  tableSize: 4,
+  numberOfTables: '',
+  showTableDivider: false,
+};
+
+const loadPersistedFormOptions = (): PersistedFormOptions => {
+  if (typeof window === 'undefined') {
+    return DEFAULT_FORM_OPTIONS;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(FORM_OPTIONS_STORAGE_KEY);
+    if (!raw) {
+      return DEFAULT_FORM_OPTIONS;
+    }
+
+    const parsed = JSON.parse(raw) as Partial<PersistedFormOptions> | null;
+    if (!parsed) {
+      return DEFAULT_FORM_OPTIONS;
+    }
+
+    const tableSize = parsed.tableSize;
+    const normalizedTableSize = tableSize === 1 || tableSize === 2 || tableSize === 4 ? tableSize : 4;
+
+    const numberOfTablesRaw = parsed.numberOfTables;
+    const normalizedNumberOfTables =
+      typeof numberOfTablesRaw === 'string' && /^\d*$/.test(numberOfTablesRaw)
+        ? numberOfTablesRaw
+        : typeof numberOfTablesRaw === 'number' && Number.isInteger(numberOfTablesRaw) && numberOfTablesRaw > 0
+          ? String(numberOfTablesRaw)
+          : '';
+
+    const showTableDivider = parsed.showTableDivider === true;
+
+    return {
+      tableSize: normalizedTableSize,
+      numberOfTables: normalizedNumberOfTables,
+      showTableDivider,
+    };
+  } catch {
+    return DEFAULT_FORM_OPTIONS;
+  }
+};
 
 interface InputFormProps {
   onSubmit: (data: {
@@ -12,11 +65,30 @@ interface InputFormProps {
 }
 
 export const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
+  const [initialOptions] = useState<PersistedFormOptions>(() => loadPersistedFormOptions());
   const [roster, setRoster] = useState<string>('');
-  const [tableSize, setTableSize] = useState<number>(4);
-  const [numberOfTables, setNumberOfTables] = useState<string>('');
-  const [showTableDivider, setShowTableDivider] = useState<boolean>(false);
+  const [tableSize, setTableSize] = useState<number>(initialOptions.tableSize);
+  const [numberOfTables, setNumberOfTables] = useState<string>(initialOptions.numberOfTables);
+  const [showTableDivider, setShowTableDivider] = useState<boolean>(initialOptions.showTableDivider);
   const [error, setError] = useState<string>('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const optionsToPersist: PersistedFormOptions = {
+      tableSize,
+      numberOfTables,
+      showTableDivider,
+    };
+
+    try {
+      window.localStorage.setItem(FORM_OPTIONS_STORAGE_KEY, JSON.stringify(optionsToPersist));
+    } catch {
+      // Ignore localStorage write issues
+    }
+  }, [tableSize, numberOfTables, showTableDivider]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
